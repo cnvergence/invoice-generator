@@ -8,7 +8,7 @@ import (
 )
 
 func Test_Generate(t *testing.T) {
-	os.Args = []string{"invoice", "generate", "--yaml=test/test-invoice.yaml", "--out=test/test.pdf"}
+	os.Args = []string{"invoice", "generate", "--yaml=example/test-invoice.yaml", "--out=example/test.pdf"}
 
 	cmd.Execute()
 }
