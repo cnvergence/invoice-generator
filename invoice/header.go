@@ -13,7 +13,8 @@ func getCurrentDate() string {
 	return t
 }
 
-func (i *Invoice) BuildHeader() {
+//buildHeader prepares header on the invoice.
+func (i *Invoice) buildHeader() {
 	i.pdf.RegisterHeader(func() {
 		i.pdf.Row(30, func() {
 			i.pdf.Col(5, func() {

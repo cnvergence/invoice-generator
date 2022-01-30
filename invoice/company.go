@@ -6,7 +6,8 @@ import (
 	"github.com/johnfercher/maroto/pkg/props"
 )
 
-func (i *Invoice) BuildCompanyDetails() {
+// buildCompanyDetails prepares rows with Buyer and Seller contact details on the invoice.
+func (i *Invoice) buildCompanyDetails() {
 	i.pdf.Row(7, func() {
 		i.pdf.SetBackgroundColor(getTealColor())
 		i.pdf.Col(3, func() {

@@ -6,7 +6,8 @@ import (
 	"github.com/johnfercher/maroto/pkg/props"
 )
 
-func (i *Invoice) BuildSignature() {
+//buildSignature prepares signatures of the receiver and issuer.
+func (i *Invoice) buildSignature() {
 	i.pdf.SetBackgroundColor(getTealColor())
 	i.pdf.Line(0.5)
 	i.pdf.SetBackgroundColor(color.NewWhite())

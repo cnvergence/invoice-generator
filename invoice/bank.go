@@ -6,7 +6,8 @@ import (
 	"github.com/johnfercher/maroto/pkg/props"
 )
 
-func (i *Invoice) BuildBankDetails() {
+// buildBankDetails prepares rows with Bank details on the invoice.
+func (i *Invoice) buildBankDetails() {
 	i.pdf.SetBackgroundColor(getTealColor())
 	i.pdf.Line(0.5)
 	i.pdf.SetBackgroundColor(color.NewWhite())

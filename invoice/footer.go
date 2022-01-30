@@ -11,7 +11,8 @@ import (
 	"github.com/johnfercher/maroto/pkg/props"
 )
 
-func (i *Invoice) BuildFooter() {
+// buildFooter prepares footer on the invoice.
+func (i *Invoice) buildFooter() {
 	i.pdf.RegisterFooter(func() {
 		i.pdf.SetAliasNbPages("{nbs}")
 		currentPage := strconv.Itoa(i.pdf.GetCurrentPage())

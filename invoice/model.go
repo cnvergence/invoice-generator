@@ -2,6 +2,7 @@ package invoice
 
 import "github.com/johnfercher/maroto/pkg/pdf"
 
+//Invoice parameters.
 type Invoice struct {
 	pdf       pdf.Maroto
 	Number    string  `yaml:"number"`
@@ -16,28 +17,33 @@ type Invoice struct {
 	Signature string  `yaml:"signature"`
 }
 
+//Company details of buyer and seller.
 type Company struct {
 	Buyer  Buyer  `yaml:"buyer"`
 	Seller Seller `yaml:"seller"`
 }
 
+//Buyer company details.
 type Buyer struct {
 	Name    string `yaml:"name"`
 	Address string `yaml:"address"`
 	VAT     string `yaml:"vat"`
 }
 
+//Seller company details.
 type Seller struct {
 	Name    string `yaml:"name"`
 	Address string `yaml:"address"`
 	VAT     string `yaml:"vat"`
 }
 
+//Bank details on the invoice.
 type Bank struct {
 	AccountNumber string `yaml:"accountNumber"`
 	Swift         string `yaml:"swift"`
 }
 
+//Item parameters.
 type Item struct {
 	Description string  `yaml:"description"`
 	Quantity    float64 `yaml:"quantity"`

@@ -7,6 +7,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+//New returns Invoice struct loaded with values from YAML and prepares PDF struct.
 func New(file []byte) *Invoice {
 	invoice := &Invoice{}
 	if err := yaml.Unmarshal(file, &invoice); err != nil {
@@ -44,12 +45,12 @@ func (i *Invoice) setPDFLayout() {
 	i.pdf.SetDefaultFontFamily("Montserrat")
 	i.pdf.SetPageMargins(10, 15, 10)
 
-	i.BuildHeader()
-	i.BuildFooter()
-	i.BuildCompanyDetails()
-	i.BuildBankDetails()
-	i.BuildTable()
-	i.BuildSignature()
+	i.buildHeader()
+	i.buildFooter()
+	i.buildCompanyDetails()
+	i.buildBankDetails()
+	i.buildTable()
+	i.buildSignature()
 
 	_, height := i.pdf.GetPageSize()
 	current := i.pdf.GetCurrentOffset()
@@ -58,6 +59,7 @@ func (i *Invoice) setPDFLayout() {
 	})
 }
 
+//SaveToPdf saves PDF to a file and closes it.
 func (i *Invoice) SaveToPdf(outputPath string) error {
 	err := i.pdf.OutputFileAndClose(outputPath)
 

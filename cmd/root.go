@@ -6,10 +6,11 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "invoice",
-	Short: "Generate invoice in pdf format",
-	Long:  `Generate invoice in pdf format from yaml file`,
+	Short: "Generate invoice to PDF",
+	Long:  `Generate invoice in PDF format from YAML file`,
 }
 
+// Execute root command
 func Execute() {
 	cobra.CheckErr(rootCmd.Execute())
 }

@@ -10,7 +10,8 @@ import (
 	"github.com/johnfercher/maroto/pkg/props"
 )
 
-func (i *Invoice) BuildTable() {
+//buildTable prepares Tablelist with items on the invoice with calculated tax amounts and total gross amounts.
+func (i *Invoice) buildTable() {
 	backgroundColor := getGrayColor()
 	header := getHeader()
 	items := i.getItems()

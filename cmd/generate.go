@@ -10,10 +10,10 @@ import (
 )
 
 // generaterCmd represents the generate command
-var GenerateCmd = &cobra.Command{
+var generateCmd = &cobra.Command{
 	Use:   "generate",
 	Short: "Generate invoice",
-	Long:  `Generate invoice in pdf`,
+	Long:  `Generate invoice to PDF file from YAML`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		yamlPath, _ := cmd.Flags().GetString("yaml")
 		outputPath, err := cmd.Flags().GetString("out")
@@ -28,7 +28,7 @@ var GenerateCmd = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(GenerateCmd)
+	rootCmd.AddCommand(generateCmd)
 	rootCmd.PersistentFlags().String("yaml", "invoice.yaml", "Path to the YAML file with invoice parameters")
 	rootCmd.PersistentFlags().String("out", "invoice.pdf", "Path to where should it save pdf file")
 }
