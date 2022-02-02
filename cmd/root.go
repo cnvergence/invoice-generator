@@ -5,7 +5,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "invoice",
+	Use:   "invoice-generator",
 	Short: "Generate invoice to PDF",
 	Long:  `Generate invoice in PDF format from YAML file`,
 }

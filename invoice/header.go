@@ -54,7 +54,7 @@ func (i *Invoice) buildHeader() {
 					Style: consts.Bold,
 					Align: consts.Center,
 				})
-				i.pdf.Text("Date of issue:", props.Text{
+				i.pdf.Text("Due date:", props.Text{
 					Top:   24,
 					Size:  8,
 					Style: consts.Bold,
