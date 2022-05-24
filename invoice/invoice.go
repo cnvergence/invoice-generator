@@ -65,3 +65,10 @@ func (i *Invoice) SaveToPdf(outputPath string) error {
 
 	return err
 }
+
+//Save saves PDF to a file and closes it.
+func (i *Invoice) SaveAsBytes() ([]byte, error) {
+	bytes, err := i.pdf.Output()
+
+	return bytes.Bytes(), err
+}

@@ -15,4 +15,4 @@ Generate the invoice with this command:
 
 `invoice-generator generate --yaml=<path to yaml values> --out=<path to save a PDF file>`
 
-For the example, please check the example folder.
+Please check the example folder for more.
