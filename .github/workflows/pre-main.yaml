@@ -11,6 +11,12 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
+    - name: Install fonts
+      run: |
+        mkdir -p $HOME/.local/share/fonts
+        cp -r fonts/* $HOME/.local/share/fonts/
+        fc-cache -fv
+
     - name: Set up Go
       uses: actions/setup-go@v3
       with:

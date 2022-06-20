@@ -29,3 +29,5 @@ items:
     vatRate: 0
     quantity: 11
     unitPrice: 2
+options:
+  font: "Montserrat"

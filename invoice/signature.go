@@ -13,7 +13,7 @@ func (i *Invoice) buildSignature() {
 	i.pdf.SetBackgroundColor(color.NewWhite())
 
 	i.pdf.Row(15, func() {
-		i.pdf.Col(8, func() {
+		i.pdf.Col(1, func() {
 			i.pdf.Text("Notes:", props.Text{
 				Top:   1,
 				Style: consts.Bold,
@@ -21,11 +21,13 @@ func (i *Invoice) buildSignature() {
 				Align: consts.Left,
 				Color: getTealColor(),
 			})
+		})
+		i.pdf.Col(3, func() {
 			i.pdf.Text(i.Notes, props.Text{
 				Top:   1,
 				Style: consts.Bold,
 				Size:  8,
-				Align: consts.Center,
+				Align: consts.Left,
 			})
 		})
 	})

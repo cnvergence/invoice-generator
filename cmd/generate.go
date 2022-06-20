@@ -36,15 +36,17 @@ func init() {
 func generate(sourcePath string, outputPath string) error {
 	file, err := ioutil.ReadFile(sourcePath)
 	if err != nil {
-		fmt.Println("Could not read the file:", err)
-		os.Exit(1)
+		return fmt.Errorf("could not read the file: %s", err)
 	}
 
-	inv := invoice.New(file)
+	inv, err := invoice.New(file)
+	if err != nil {
+		return fmt.Errorf("could not prepare the invoice: %s", err)
+	}
+
 	err = inv.SaveToPdf(outputPath)
 	if err != nil {
-		fmt.Println("Could not save PDF:", err)
-		os.Exit(1)
+		return fmt.Errorf("could not save PDF: %s", err)
 	}
 	return err
 }

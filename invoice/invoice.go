@@ -1,6 +1,8 @@
 package invoice
 
 import (
+	"fmt"
+
 	"github.com/johnfercher/maroto/pkg/color"
 	"github.com/johnfercher/maroto/pkg/consts"
 	"github.com/johnfercher/maroto/pkg/pdf"
@@ -8,16 +10,19 @@ import (
 )
 
 //New returns Invoice struct loaded with values from YAML and prepares PDF struct.
-func New(file []byte) *Invoice {
+func New(file []byte) (*Invoice, error) {
 	invoice := &Invoice{}
 	if err := yaml.Unmarshal(file, &invoice); err != nil {
-		return nil
+		return nil, fmt.Errorf("could not unmarshal yaml values: %s", err)
 	}
 
 	invoice.pdf = pdf.NewMaroto(consts.Portrait, consts.A4)
-	invoice.setPDFLayout()
+	err := invoice.setPDFLayout()
+	if err != nil {
+		return nil, fmt.Errorf("could not set the invoice layout: %s", err)
+	}
 
-	return invoice
+	return invoice, nil
 }
 
 func getTealColor() color.Color {
@@ -36,15 +41,13 @@ func getGrayColor() color.Color {
 	}
 }
 
-func (i *Invoice) setPDFLayout() {
+func (i *Invoice) setPDFLayout() error {
 	i.pdf.SetFirstPageNb(1)
-	i.pdf.AddUTF8Font("Montserrat", consts.Normal, "fonts/Montserrat-Regular.ttf")
-	i.pdf.AddUTF8Font("Montserrat", consts.Italic, "fonts/Montserrat-Italic.ttf")
-	i.pdf.AddUTF8Font("Montserrat", consts.Bold, "fonts/Montserrat-Bold.ttf")
-	i.pdf.AddUTF8Font("Montserrat", consts.BoldItalic, "fonts/Montserrat-BoldItalic.ttf")
-	i.pdf.SetDefaultFontFamily("Montserrat")
 	i.pdf.SetPageMargins(10, 15, 10)
-
+	err := i.setFonts()
+	if err != nil {
+		return fmt.Errorf("could not configure fonts: %s", err)
+	}
 	i.buildHeader()
 	i.buildFooter()
 	i.buildCompanyDetails()
@@ -57,18 +60,23 @@ func (i *Invoice) setPDFLayout() {
 	filler := height - current - 60
 	i.pdf.Row(filler, func() {
 	})
+	return nil
 }
 
-//SaveToPdf saves PDF to a file and closes it.
+//SaveToPdf saves Invoice to a PDF file and closes it.
 func (i *Invoice) SaveToPdf(outputPath string) error {
 	err := i.pdf.OutputFileAndClose(outputPath)
-
+	if err != nil {
+		return fmt.Errorf("could not save Invoice to .pdf file: %s", err)
+	}
 	return err
 }
 
-//Save saves PDF to a file and closes it.
+//Save saves Invoice to bytes and closes it.
 func (i *Invoice) SaveAsBytes() ([]byte, error) {
 	bytes, err := i.pdf.Output()
-
+	if err != nil {
+		return nil, fmt.Errorf("could not save Invoice to bytes: %s", err)
+	}
 	return bytes.Bytes(), err
 }

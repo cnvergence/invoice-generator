@@ -15,6 +15,7 @@ type Invoice struct {
 	Items     []*Item `yaml:"items"`
 	Currency  string  `yaml:"currency"`
 	Signature string  `yaml:"signature"`
+	Options   Options `yaml:"options"`
 }
 
 //Company details of buyer and seller.
@@ -49,4 +50,9 @@ type Item struct {
 	Quantity    float64 `yaml:"quantity"`
 	UnitPrice   float64 `yaml:"unitPrice"`
 	VATRate     float64 `yaml:"vatRate"`
+}
+
+//Options of the PDF document.
+type Options struct {
+	FontFamily string `yaml:"font" default:"Arial"`
 }
