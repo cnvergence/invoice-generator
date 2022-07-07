@@ -10,10 +10,10 @@ import (
 )
 
 func (i *Invoice) setFonts() error {
-	if i.Options.FontFamily != "Arial" {
+	if i.Options.FontFamily != "" {
 		fontPath, err := findfont.Find(i.Options.FontFamily)
 		if err != nil {
-			return fmt.Errorf("could not find the installed font: %s", err)
+			return fmt.Errorf("could not find font %s installed: %s", i.Options.FontFamily, err)
 		}
 		i.pdf.SetFontLocation(filepath.Dir(fontPath))
 		fontlist := findfont.List()
