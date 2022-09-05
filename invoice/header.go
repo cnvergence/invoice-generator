@@ -1,19 +1,11 @@
 package invoice
 
 import (
-	"fmt"
-	"time"
-
 	"github.com/johnfercher/maroto/pkg/consts"
 	"github.com/johnfercher/maroto/pkg/props"
 )
 
-func getCurrentDate() string {
-	t := time.Now().Format("01/2006")
-	return t
-}
-
-//buildHeader prepares header on the invoice.
+// buildHeader prepares header on the invoice.
 func (i *Invoice) buildHeader() {
 	i.pdf.RegisterHeader(func() {
 		i.pdf.Row(30, func() {
@@ -23,7 +15,7 @@ func (i *Invoice) buildHeader() {
 					Style: consts.Bold,
 					Align: consts.Left,
 				})
-				i.pdf.Text(fmt.Sprintf("%s/%s", i.Number, getCurrentDate()), props.Text{
+				i.pdf.Text(i.Number, props.Text{
 					Top:   12,
 					Size:  30,
 					Style: consts.Bold,
