@@ -10,7 +10,7 @@ import (
 	"github.com/johnfercher/maroto/pkg/props"
 )
 
-//buildTable prepares Tablelist with items on the invoice with calculated tax amounts and total gross amounts.
+// buildTable prepares Tablelist with items on the invoice with calculated tax amounts and total gross amounts.
 func (i *Invoice) buildTable() {
 	backgroundColor := getGrayColor()
 	header := getHeader()
@@ -85,10 +85,10 @@ func (i *Invoice) countTax() ([]float64, []float64) {
 	var taxes []float64
 	var totals []float64
 
-	for j := 0; j < len(i.Items); j++ {
-		vat := i.Items[j].VATRate
-		price := i.Items[j].UnitPrice
-		quantity := i.Items[j].Quantity
+	for _, item := range i.Items {
+		vat := item.VATRate
+		price := item.UnitPrice
+		quantity := item.Quantity
 
 		tax := quantity * (vat * price / 100)
 		total := quantity*price + tax
@@ -120,15 +120,15 @@ func (i *Invoice) getItems() [][]string {
 		return nil
 	}
 
-	for j := 0; j < v.Len(); j++ {
-		e := reflect.Indirect(v.Index(j))
+	for i := range make([]struct{}, v.Len()) {
+		e := reflect.Indirect(v.Index(i))
 
 		if e.Kind() != reflect.Struct {
 			return nil
 		}
 		var element []string
-		for j := 0; j < e.NumField(); j++ {
-			element = append(element, fmt.Sprint(e.Field(j).Interface()))
+		for fieldIdx := range make([]struct{}, e.NumField()) {
+			element = append(element, fmt.Sprint(e.Field(fieldIdx).Interface()))
 		}
 
 		items = append(items, element)

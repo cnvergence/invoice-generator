@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/cnvergence/invoice-generator/invoice"
@@ -15,10 +14,14 @@ var generateCmd = &cobra.Command{
 	Short: "Generate invoice",
 	Long:  `Generate invoice to PDF file from YAML`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		yamlPath, _ := cmd.Flags().GetString("yaml")
+		yamlPath, err := cmd.Flags().GetString("yaml")
+		if err != nil {
+			fmt.Println("Could not get the value of yaml input flag", err)
+			os.Exit(1)
+		}
 		outputPath, err := cmd.Flags().GetString("out")
 		if err != nil {
-			fmt.Println("Could not get the value of flag", err)
+			fmt.Println("Could not get the value of output flag", err)
 			os.Exit(1)
 		}
 		err = generate(yamlPath, outputPath)
@@ -34,7 +37,7 @@ func init() {
 }
 
 func generate(sourcePath string, outputPath string) error {
-	file, err := ioutil.ReadFile(sourcePath)
+	file, err := os.ReadFile(sourcePath)
 	if err != nil {
 		return fmt.Errorf("could not read the file: %s", err)
 	}
