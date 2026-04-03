@@ -1,64 +1,68 @@
 package invoice
 
 import (
-	"github.com/johnfercher/maroto/pkg/consts"
-	"github.com/johnfercher/maroto/pkg/props"
+	"github.com/johnfercher/maroto/v2/pkg/components/col"
+	"github.com/johnfercher/maroto/v2/pkg/components/row"
+	"github.com/johnfercher/maroto/v2/pkg/components/text"
+	"github.com/johnfercher/maroto/v2/pkg/consts/align"
+	"github.com/johnfercher/maroto/v2/pkg/consts/fontstyle"
+	"github.com/johnfercher/maroto/v2/pkg/props"
 )
 
 // buildHeader prepares header on the invoice.
-func (i *Invoice) buildHeader() {
-	i.pdf.RegisterHeader(func() {
-		i.pdf.Row(30, func() {
-			i.pdf.Col(5, func() {
-				i.pdf.Text("Invoice", props.Text{
+func (i *Invoice) buildHeader() error {
+	return i.pdf.RegisterHeader(
+		row.New(30).Add(
+			col.New(5).Add(
+				text.New("Invoice", props.Text{
 					Size:  30,
-					Style: consts.Bold,
-					Align: consts.Left,
-				})
-				i.pdf.Text(i.Number, props.Text{
+					Style: fontstyle.Bold,
+					Align: align.Left,
+				}),
+				text.New(i.Number, props.Text{
 					Top:   12,
 					Size:  30,
-					Style: consts.Bold,
-				})
-			})
-			i.pdf.ColSpace(3)
-			i.pdf.Col(4, func() {
-				i.pdf.Text("Date of issue:", props.Text{
+					Style: fontstyle.Bold,
+				}),
+			),
+			col.New(3),
+			col.New(4).Add(
+				text.New("Date of issue:", props.Text{
 					Size:  8,
-					Style: consts.Bold,
-					Align: consts.Left,
+					Style: fontstyle.Bold,
+					Align: align.Left,
 					Color: getTealColor(),
-				})
-				i.pdf.Text(i.IssueDate, props.Text{
+				}),
+				text.New(i.IssueDate, props.Text{
 					Size:  8,
-					Style: consts.Bold,
-					Align: consts.Center,
-				})
-				i.pdf.Text("Date of sale:", props.Text{
+					Style: fontstyle.Bold,
+					Align: align.Center,
+				}),
+				text.New("Date of sale:", props.Text{
 					Top:   12,
 					Size:  8,
-					Style: consts.Bold,
+					Style: fontstyle.Bold,
 					Color: getTealColor(),
-				})
-				i.pdf.Text(i.SaleDate, props.Text{
+				}),
+				text.New(i.SaleDate, props.Text{
 					Top:   12,
 					Size:  8,
-					Style: consts.Bold,
-					Align: consts.Center,
-				})
-				i.pdf.Text("Due date:", props.Text{
+					Style: fontstyle.Bold,
+					Align: align.Center,
+				}),
+				text.New("Due date:", props.Text{
 					Top:   24,
 					Size:  8,
-					Style: consts.Bold,
+					Style: fontstyle.Bold,
 					Color: getTealColor(),
-				})
-				i.pdf.Text(i.DueDate, props.Text{
+				}),
+				text.New(i.DueDate, props.Text{
 					Top:   24,
 					Size:  8,
-					Style: consts.Bold,
-					Align: consts.Center,
-				})
-			})
-		})
-	})
+					Style: fontstyle.Bold,
+					Align: align.Center,
+				}),
+			),
+		),
+	)
 }

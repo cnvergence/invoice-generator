@@ -1,45 +1,47 @@
 package invoice
 
 import (
-	"github.com/johnfercher/maroto/pkg/color"
-	"github.com/johnfercher/maroto/pkg/consts"
-	"github.com/johnfercher/maroto/pkg/props"
+	"github.com/johnfercher/maroto/v2/pkg/components/col"
+	"github.com/johnfercher/maroto/v2/pkg/components/row"
+	"github.com/johnfercher/maroto/v2/pkg/components/text"
+	"github.com/johnfercher/maroto/v2/pkg/consts/align"
+	"github.com/johnfercher/maroto/v2/pkg/consts/fontstyle"
+	"github.com/johnfercher/maroto/v2/pkg/props"
 )
 
 // buildBankDetails prepares rows with Bank details on the invoice.
 func (i *Invoice) buildBankDetails() {
-	i.pdf.SetBackgroundColor(getTealColor())
-	i.pdf.Line(0.5)
-	i.pdf.SetBackgroundColor(color.NewWhite())
-
-	i.pdf.Row(20, func() {
-		i.pdf.Col(3, func() {
-			i.pdf.Text("Account no:", props.Text{
-				Style: consts.Bold,
-				Size:  8,
-				Align: consts.Left,
-				Color: getTealColor(),
-			})
-			i.pdf.Text(i.Bank.AccountNumber, props.Text{
-				Top:   3,
-				Style: consts.Bold,
-				Size:  8,
-				Align: consts.Left,
-			})
-		})
-		i.pdf.Col(2, func() {
-			i.pdf.Text("Bank/SWIFT: ", props.Text{
-				Style: consts.Bold,
-				Size:  8,
-				Align: consts.Left,
-				Color: getTealColor(),
-			})
-			i.pdf.Text(i.Bank.Swift, props.Text{
-				Top:   3,
-				Style: consts.Bold,
-				Size:  8,
-				Align: consts.Left,
-			})
-		})
-	})
+	i.pdf.AddRows(
+		row.New(0.5).WithStyle(&props.Cell{BackgroundColor: getTealColor()}).Add(col.New(12)),
+		row.New(20).Add(
+			col.New(3).Add(
+				text.New("Account no:", props.Text{
+					Style: fontstyle.Bold,
+					Size:  8,
+					Align: align.Left,
+					Color: getTealColor(),
+				}),
+				text.New(i.Bank.AccountNumber, props.Text{
+					Top:   3,
+					Style: fontstyle.Bold,
+					Size:  8,
+					Align: align.Left,
+				}),
+			),
+			col.New(2).Add(
+				text.New("Bank/SWIFT: ", props.Text{
+					Style: fontstyle.Bold,
+					Size:  8,
+					Align: align.Left,
+					Color: getTealColor(),
+				}),
+				text.New(i.Bank.Swift, props.Text{
+					Top:   3,
+					Style: fontstyle.Bold,
+					Size:  8,
+					Align: align.Left,
+				}),
+			),
+		),
+	)
 }

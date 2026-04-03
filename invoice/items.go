@@ -5,66 +5,85 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/johnfercher/maroto/pkg/color"
-	"github.com/johnfercher/maroto/pkg/consts"
-	"github.com/johnfercher/maroto/pkg/props"
+	"github.com/johnfercher/maroto/v2/pkg/components/col"
+	"github.com/johnfercher/maroto/v2/pkg/components/row"
+	"github.com/johnfercher/maroto/v2/pkg/components/text"
+	"github.com/johnfercher/maroto/v2/pkg/consts/align"
+	"github.com/johnfercher/maroto/v2/pkg/consts/fontstyle"
+	"github.com/johnfercher/maroto/v2/pkg/core"
+	"github.com/johnfercher/maroto/v2/pkg/props"
 )
 
-// buildTable prepares Tablelist with items on the invoice with calculated tax amounts and total gross amounts.
+// buildTable prepares table with items on the invoice with calculated tax amounts and total gross amounts.
 func (i *Invoice) buildTable() {
-	backgroundColor := getGrayColor()
 	header := getHeader()
 	items := i.getItems()
 	taxes, totals := i.countTax()
 	contents := appendItems(items, taxes, totals)
+	gridSizes := []int{1, 3, 1, 2, 1, 1, 3}
 
-	i.pdf.SetBackgroundColor(getTealColor())
-	i.pdf.Row(2, func() {
-		i.pdf.Col(12, func() {
-		})
-	})
-	i.pdf.SetBackgroundColor(color.NewWhite())
-	i.pdf.TableList(header, contents, props.TableList{
-		HeaderProp: props.TableListContent{
-			Style:     consts.Normal,
-			Size:      8,
-			GridSizes: []uint{1, 3, 1, 2, 1, 1, 3},
-			Color:     getTealColor(),
-		},
-		ContentProp: props.TableListContent{
-			Style:     consts.Normal,
-			Size:      10,
-			GridSizes: []uint{1, 3, 1, 2, 1, 1, 3},
-		},
-		Align:                consts.Center,
-		AlternatedBackground: &backgroundColor,
-		HeaderContentSpace:   1,
-		Line:                 false,
-	})
+	i.pdf.AddRows(
+		row.New(2).WithStyle(&props.Cell{BackgroundColor: getTealColor()}).Add(col.New(12)),
+	)
 
-	i.pdf.Row(10, func() {
-		i.pdf.ColSpace(8)
-		i.pdf.SetBackgroundColor(getTealColor())
-		i.pdf.Col(2, func() {
-			i.pdf.Text("Total:", props.Text{
-				Top:   3,
-				Style: consts.Bold,
+	headerCols := make([]core.Col, len(header))
+	for j, h := range header {
+		headerCols[j] = col.New(gridSizes[j]).Add(
+			text.New(h, props.Text{
+				Style: fontstyle.Bold,
 				Size:  8,
-				Align: consts.Right,
-				Color: color.NewWhite(),
-			})
-		})
-		i.pdf.Col(2, func() {
-			i.pdf.Text(fmt.Sprintf("%s %s", calculateInvoiceSum(contents), i.Currency), props.Text{
-				Top:   3,
-				Style: consts.Bold,
-				Size:  8,
-				Align: consts.Center,
-				Color: color.NewWhite(),
-			})
-		})
-	})
+				Align: align.Center,
+				Color: getTealColor(),
+			}),
+		)
+	}
+	i.pdf.AddRows(row.New(8).Add(headerCols...))
 
+	for idx, content := range contents {
+		contentCols := make([]core.Col, len(gridSizes))
+		for j := range gridSizes {
+			var val string
+			if j < len(content) {
+				val = content[j]
+			}
+			contentCols[j] = col.New(gridSizes[j]).Add(
+				text.New(val, props.Text{
+					Style: fontstyle.Normal,
+					Size:  10,
+					Align: align.Center,
+				}),
+			)
+		}
+		contentRow := row.New(8).Add(contentCols...)
+		if idx%2 == 0 {
+			contentRow = contentRow.WithStyle(&props.Cell{BackgroundColor: getGrayColor()})
+		}
+		i.pdf.AddRows(contentRow)
+	}
+
+	i.pdf.AddRows(
+		row.New(10).Add(
+			col.New(8),
+			col.New(2).WithStyle(&props.Cell{BackgroundColor: getTealColor()}).Add(
+				text.New("Total:", props.Text{
+					Top:   3,
+					Style: fontstyle.Bold,
+					Size:  8,
+					Align: align.Right,
+					Color: getWhiteColor(),
+				}),
+			),
+			col.New(2).WithStyle(&props.Cell{BackgroundColor: getTealColor()}).Add(
+				text.New(fmt.Sprintf("%s %s", calculateInvoiceSum(contents), i.Currency), props.Text{
+					Top:   3,
+					Style: fontstyle.Bold,
+					Size:  8,
+					Align: align.Center,
+					Color: getWhiteColor(),
+				}),
+			),
+		),
+	)
 }
 
 func getHeader() []string {
