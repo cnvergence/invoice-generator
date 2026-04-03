@@ -1,39 +1,28 @@
 package invoice
 
 import (
-	"fmt"
-	"strconv"
-
-	"github.com/johnfercher/maroto/pkg/consts"
-	"github.com/johnfercher/maroto/pkg/props"
+	"github.com/johnfercher/maroto/v2/pkg/components/col"
+	"github.com/johnfercher/maroto/v2/pkg/components/row"
+	"github.com/johnfercher/maroto/v2/pkg/components/text"
+	"github.com/johnfercher/maroto/v2/pkg/consts/align"
+	"github.com/johnfercher/maroto/v2/pkg/consts/fontstyle"
+	"github.com/johnfercher/maroto/v2/pkg/props"
 )
 
 // buildFooter prepares footer on the invoice.
-func (i *Invoice) buildFooter() {
-	i.pdf.RegisterFooter(func() {
-		i.pdf.SetAliasNbPages("{nbs}")
-		currentPage := strconv.Itoa(i.pdf.GetCurrentPage())
-		i.pdf.Row(6, func() {
-			i.pdf.Col(12, func() {
-				i.pdf.Text(fmt.Sprintf("Page %s of {nbs}", currentPage), props.Text{
+// Page numbers are handled automatically via config.WithPageNumber.
+func (i *Invoice) buildFooter() error {
+	return i.pdf.RegisterFooter(
+		row.New(6).Add(
+			col.New(12).Add(
+				text.New("github.com/cnvergence/invoice-generator", props.Text{
 					Top:   1,
-					Style: consts.BoldItalic,
+					Style: fontstyle.BoldItalic,
 					Size:  8,
-					Align: consts.Left,
+					Align: align.Left,
 					Color: getTealColor(),
-				})
-			})
-		})
-		i.pdf.Row(6, func() {
-			i.pdf.Col(12, func() {
-				i.pdf.Text("github.com/cnvergence/invoice-generator", props.Text{
-					Top:   1,
-					Style: consts.BoldItalic,
-					Size:  8,
-					Align: consts.Left,
-					Color: getTealColor(),
-				})
-			})
-		})
-	})
+				}),
+			),
+		),
+	)
 }

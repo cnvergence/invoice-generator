@@ -1,10 +1,10 @@
 package invoice
 
-import "github.com/johnfercher/maroto/pkg/pdf"
+import "github.com/johnfercher/maroto/v2/pkg/core"
 
-//Invoice parameters.
+// Invoice parameters.
 type Invoice struct {
-	pdf       pdf.Maroto
+	pdf       core.Maroto
 	Number    string  `yaml:"number"`
 	IssueDate string  `yaml:"issueDate"`
 	SaleDate  string  `yaml:"saleDate"`

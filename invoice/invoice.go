@@ -3,80 +3,103 @@ package invoice
 import (
 	"fmt"
 
-	"github.com/johnfercher/maroto/pkg/color"
-	"github.com/johnfercher/maroto/pkg/consts"
-	"github.com/johnfercher/maroto/pkg/pdf"
+	maroto "github.com/johnfercher/maroto/v2"
+	"github.com/johnfercher/maroto/v2/pkg/config"
+	"github.com/johnfercher/maroto/v2/pkg/consts/fontstyle"
+	"github.com/johnfercher/maroto/v2/pkg/consts/pagesize"
+	"github.com/johnfercher/maroto/v2/pkg/props"
 	"gopkg.in/yaml.v3"
 )
 
-//New returns Invoice struct loaded with values from YAML and prepares PDF struct.
+// New returns Invoice struct loaded with values from YAML and prepares PDF struct.
 func New(file []byte) (*Invoice, error) {
 	invoice := &Invoice{}
 	if err := yaml.Unmarshal(file, &invoice); err != nil {
 		return nil, fmt.Errorf("could not unmarshal yaml values: %s", err)
 	}
 
-	invoice.pdf = pdf.NewMaroto(consts.Portrait, consts.A4)
-	err := invoice.setPDFLayout()
+	cfgBuilder := config.NewBuilder().
+		WithPageSize(pagesize.A4).
+		WithLeftMargin(10).
+		WithTopMargin(15).
+		WithRightMargin(10).
+		WithPageNumber(props.PageNumber{
+			Pattern: "Page {current} of {total}",
+			Place:   props.LeftBottom,
+			Style:   fontstyle.BoldItalic,
+			Size:    8,
+			Color:   getTealColor(),
+		})
+
+	var err error
+	cfgBuilder, err = invoice.configureFonts(cfgBuilder)
 	if err != nil {
+		return nil, fmt.Errorf("could not configure fonts: %s", err)
+	}
+
+	invoice.pdf = maroto.New(cfgBuilder.Build())
+	if err := invoice.setPDFLayout(); err != nil {
 		return nil, fmt.Errorf("could not set the invoice layout: %s", err)
 	}
 
 	return invoice, nil
 }
 
-func getTealColor() color.Color {
-	return color.Color{
+func getTealColor() *props.Color {
+	return &props.Color{
 		Red:   3,
 		Green: 166,
 		Blue:  166,
 	}
 }
 
-func getGrayColor() color.Color {
-	return color.Color{
+func getGrayColor() *props.Color {
+	return &props.Color{
 		Red:   200,
 		Green: 200,
 		Blue:  200,
 	}
 }
 
-func (i *Invoice) setPDFLayout() error {
-	i.pdf.SetFirstPageNb(1)
-	i.pdf.SetPageMargins(10, 15, 10)
-	err := i.setFonts()
-	if err != nil {
-		return fmt.Errorf("could not configure fonts: %s", err)
+func getWhiteColor() *props.Color {
+	return &props.Color{
+		Red:   255,
+		Green: 255,
+		Blue:  255,
 	}
-	i.buildHeader()
-	i.buildFooter()
+}
+
+func (i *Invoice) setPDFLayout() error {
+	if err := i.buildHeader(); err != nil {
+		return fmt.Errorf("could not build header: %s", err)
+	}
+	if err := i.buildFooter(); err != nil {
+		return fmt.Errorf("could not build footer: %s", err)
+	}
 	i.buildCompanyDetails()
 	i.buildBankDetails()
 	i.buildTable()
 	i.buildSignature()
-
-	_, height := i.pdf.GetPageSize()
-	current := i.pdf.GetCurrentOffset()
-	filler := height - current - 60
-	i.pdf.Row(filler, func() {
-	})
 	return nil
 }
 
-//SaveToPdf saves Invoice to a PDF file and closes it.
+// SaveToPdf saves Invoice to a PDF file.
 func (i *Invoice) SaveToPdf(outputPath string) error {
-	err := i.pdf.OutputFileAndClose(outputPath)
+	doc, err := i.pdf.Generate()
 	if err != nil {
+		return fmt.Errorf("could not generate Invoice: %s", err)
+	}
+	if err := doc.Save(outputPath); err != nil {
 		return fmt.Errorf("could not save Invoice to .pdf file: %s", err)
 	}
-	return err
+	return nil
 }
 
-//Save saves Invoice to bytes and closes it.
+// SaveAsBytes saves Invoice to bytes.
 func (i *Invoice) SaveAsBytes() ([]byte, error) {
-	bytes, err := i.pdf.Output()
+	doc, err := i.pdf.Generate()
 	if err != nil {
-		return nil, fmt.Errorf("could not save Invoice to bytes: %s", err)
+		return nil, fmt.Errorf("could not generate Invoice: %s", err)
 	}
-	return bytes.Bytes(), err
+	return doc.GetBytes(), nil
 }

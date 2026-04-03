@@ -2,41 +2,51 @@ package invoice
 
 import (
 	"fmt"
-	"path/filepath"
 	"strings"
 
-	"github.com/flopp/go-findfont"
-	"github.com/johnfercher/maroto/pkg/consts"
+	findfont "github.com/flopp/go-findfont"
+	"github.com/johnfercher/maroto/v2/pkg/config"
+	"github.com/johnfercher/maroto/v2/pkg/consts/fontstyle"
+	"github.com/johnfercher/maroto/v2/pkg/props"
+	"github.com/johnfercher/maroto/v2/pkg/repository"
 )
 
-func (i *Invoice) setFonts() error {
-	if i.Options.FontFamily != "" {
-		fontPath, err := findfont.Find(i.Options.FontFamily)
-		if err != nil {
-			return fmt.Errorf("could not find font %s installed: %s", i.Options.FontFamily, err)
-		}
-		i.pdf.SetFontLocation(filepath.Dir(fontPath))
-		fontlist := findfont.List()
-		fonts := filterFonts(fontlist, func(val string) bool {
-			return strings.Contains(val, i.Options.FontFamily)
-		})
-		for _, font := range fonts {
-			if strings.Contains(font, "Regular") || strings.EqualFold(font, i.Options.FontFamily) {
-				i.pdf.AddUTF8Font(i.Options.FontFamily, consts.Normal, filepath.Base(font))
-			}
-			if strings.Contains(font, "Italic") {
-				i.pdf.AddUTF8Font(i.Options.FontFamily, consts.Italic, filepath.Base(font))
-			}
-			if strings.Contains(font, "Bold") {
-				i.pdf.AddUTF8Font(i.Options.FontFamily, consts.Bold, filepath.Base(font))
-			}
-			if strings.Contains(font, "BoldItalic") || strings.Contains(font, "Bold Italic") {
-				i.pdf.AddUTF8Font(i.Options.FontFamily, consts.BoldItalic, filepath.Base(font))
-			}
-		}
-		i.pdf.SetDefaultFontFamily(i.Options.FontFamily)
+func (i *Invoice) configureFonts(builder config.Builder) (config.Builder, error) {
+	if i.Options.FontFamily == "" {
+		return builder, nil
 	}
-	return nil
+
+	_, err := findfont.Find(i.Options.FontFamily)
+	if err != nil {
+		return nil, fmt.Errorf("could not find font %s installed: %s", i.Options.FontFamily, err)
+	}
+
+	fontlist := findfont.List()
+	fonts := filterFonts(fontlist, func(val string) bool {
+		return strings.Contains(val, i.Options.FontFamily)
+	})
+
+	repo := repository.New()
+	for _, font := range fonts {
+		if strings.Contains(font, "BoldItalic") || strings.Contains(font, "Bold Italic") {
+			repo = repo.AddUTF8Font(i.Options.FontFamily, fontstyle.BoldItalic, font)
+		} else if strings.Contains(font, "Bold") {
+			repo = repo.AddUTF8Font(i.Options.FontFamily, fontstyle.Bold, font)
+		} else if strings.Contains(font, "Italic") {
+			repo = repo.AddUTF8Font(i.Options.FontFamily, fontstyle.Italic, font)
+		} else if strings.Contains(font, "Regular") || strings.EqualFold(strings.TrimSuffix(font, ".ttf"), i.Options.FontFamily) {
+			repo = repo.AddUTF8Font(i.Options.FontFamily, fontstyle.Normal, font)
+		}
+	}
+
+	customFonts, err := repo.Load()
+	if err != nil {
+		return nil, fmt.Errorf("could not load fonts: %s", err)
+	}
+
+	return builder.
+		WithCustomFonts(customFonts).
+		WithDefaultFont(&props.Font{Family: i.Options.FontFamily}), nil
 }
 
 func filterFonts(fonts []string, cond func(string) bool) []string {
