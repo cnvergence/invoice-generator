@@ -1,6 +1,6 @@
 module github.com/cnvergence/invoice-generator
 
-go 1.24
+go 1.26
 
 require (
 	github.com/flopp/go-findfont v0.1.0
