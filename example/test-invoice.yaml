@@ -2,25 +2,29 @@ number: "99"
 issueDate: "01-01-2022"
 saleDate:  "31-01-2022"
 dueDate:   "14-02-2022"
+issuePlace: "Town"
 notes:     "Lorem ipsum dolor sit amet, consectetur adipiscing elit."
 currency:  "EUR"
 signature: "Best Company"
 
 bank:
   accountNumber: "XX11 1112 1111 1111 1111"
-  swift: "Bank/BANK1234"
+  swift: "BAAABNK1234"
+  bankName: "Bank Name"
 
 company:
   buyer:
-    name:    "Best Customer"
-    address: "Office Str Places, World"
-    vat:     "111111111"
+    name:         "Best Customer"
+    address:      "Office Str Places, World"
+    countryCode:  "PL"
+    vat:          "1111111111"
   seller:
-    name:    "Best Company"
-    address: "Best Company Str. Places, World"
-    vat:     "222222222"
+    name:         "Best Company"
+    address:      "Best Company Str. Places, World"
+    countryCode:  "PL"
+    vat:          "2222222222"
 
-items:  
+items:
   - description: "Potatoes"
     quantity: 33
     unitPrice: 3.05

@@ -2,6 +2,7 @@ package invoice
 
 import (
 	"fmt"
+	"strings"
 
 	maroto "github.com/johnfercher/maroto/v2"
 	"github.com/johnfercher/maroto/v2/pkg/config"
@@ -17,6 +18,10 @@ func New(file []byte) (*Invoice, error) {
 	if err := yaml.Unmarshal(file, &invoice); err != nil {
 		return nil, fmt.Errorf("could not unmarshal yaml values: %s", err)
 	}
+
+	// Auto-split address into addressLine1/addressLine2 when not explicitly set.
+	splitAddress(&invoice.Company.Seller.AddressLine1, &invoice.Company.Seller.AddressLine2, invoice.Company.Seller.Address)
+	splitAddress(&invoice.Company.Buyer.AddressLine1, &invoice.Company.Buyer.AddressLine2, invoice.Company.Buyer.Address)
 
 	cfgBuilder := config.NewBuilder().
 		WithPageSize(pagesize.A4).
@@ -43,6 +48,19 @@ func New(file []byte) (*Invoice, error) {
 	}
 
 	return invoice, nil
+}
+
+// splitAddress populates line1/line2 from a single address string (split on
+// comma) when they are not already set.
+func splitAddress(line1, line2 *string, address string) {
+	if *line1 != "" || address == "" {
+		return
+	}
+	parts := strings.SplitN(address, ",", 2)
+	*line1 = strings.TrimSpace(parts[0])
+	if len(parts) == 2 && *line2 == "" {
+		*line2 = strings.TrimSpace(parts[1])
+	}
 }
 
 func getTealColor() *props.Color {

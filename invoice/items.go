@@ -2,7 +2,6 @@ package invoice
 
 import (
 	"fmt"
-	"reflect"
 	"strconv"
 
 	"github.com/johnfercher/maroto/v2/pkg/components/col"
@@ -20,7 +19,7 @@ func (i *Invoice) buildTable() {
 	items := i.getItems()
 	taxes, totals := i.countTax()
 	contents := appendItems(items, taxes, totals)
-	gridSizes := []int{1, 3, 1, 2, 1, 1, 3}
+	gridSizes := []int{1, 3, 1, 2, 1, 2, 2}
 
 	i.pdf.AddRows(
 		row.New(2).WithStyle(&props.Cell{BackgroundColor: getTealColor()}).Add(col.New(12)),
@@ -133,25 +132,13 @@ func appendItems(values [][]string, taxes []float64, totals []float64) [][]strin
 
 func (i *Invoice) getItems() [][]string {
 	var items [][]string
-
-	v := reflect.Indirect(reflect.ValueOf(i.Items))
-	if v.Kind() != reflect.Slice {
-		return nil
+	for _, item := range i.Items {
+		items = append(items, []string{
+			item.Description,
+			strconv.FormatFloat(item.Quantity, 'f', -1, 64),
+			strconv.FormatFloat(item.UnitPrice, 'f', 2, 64),
+			fmt.Sprintf("%.0f%%", item.VATRate),
+		})
 	}
-
-	for i := range make([]struct{}, v.Len()) {
-		e := reflect.Indirect(v.Index(i))
-
-		if e.Kind() != reflect.Struct {
-			return nil
-		}
-		var element []string
-		for fieldIdx := range make([]struct{}, e.NumField()) {
-			element = append(element, fmt.Sprint(e.Field(fieldIdx).Interface()))
-		}
-
-		items = append(items, element)
-	}
-
 	return items
 }
