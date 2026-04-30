@@ -166,6 +166,15 @@ func Generate(inv *invoice.Invoice) ([]byte, error) {
 		saleDate = "" // P_6 omitted when equal to P_1
 	}
 
+	// When notes indicate reverse charge, override 0% items to use "oo" code.
+	if strings.EqualFold(inv.Notes, "reverse charge") {
+		for _, item := range inv.Items {
+			if item.VATRateCode == "" && item.VATRate == 0 {
+				item.VATRateCode = "oo"
+			}
+		}
+	}
+
 	faktura := Faktura{
 		Xmlns:    xmlns,
 		XmlnsXsi: "http://www.w3.org/2001/XMLSchema-instance",
@@ -194,9 +203,13 @@ func Generate(inv *invoice.Invoice) ([]byte, error) {
 
 func buildPodmiot1(inv *invoice.Invoice) Podmiot1 {
 	s := inv.Company.Seller
+	nip := s.VAT
+	if _, num, ok := parseEUVat(nip); ok {
+		nip = num
+	}
 	return Podmiot1{
 		DaneIdentyfikacyjne: DaneIdPodmiot1{
-			NIP:   s.VAT,
+			NIP:   nip,
 			Nazwa: s.Name,
 		},
 		Adres: buildAdres(s.CountryCode, s.AddressLine1, s.Address, s.AddressLine2),
@@ -206,15 +219,30 @@ func buildPodmiot1(inv *invoice.Invoice) Podmiot1 {
 func buildPodmiot2(inv *invoice.Invoice) Podmiot2 {
 	b := inv.Company.Buyer
 	var daneId DaneIdPodmiot2
+	countryCode := b.CountryCode
 	switch {
 	case b.EUCode != "" && b.EUVatNumber != "":
 		daneId = DaneIdPodmiot2{KodUE: b.EUCode, NrVatUE: b.EUVatNumber, Nazwa: b.Name}
+		if countryCode == "" {
+			countryCode = b.EUCode
+		}
 	case b.NIPMissing:
 		daneId = DaneIdPodmiot2{BrakID: "1", Nazwa: b.Name}
 	default:
-		daneId = DaneIdPodmiot2{NIP: b.VAT, Nazwa: b.Name}
+		if code, num, ok := parseEUVat(b.VAT); ok && code != "PL" {
+			daneId = DaneIdPodmiot2{KodUE: code, NrVatUE: num, Nazwa: b.Name}
+			if countryCode == "" {
+				countryCode = code
+			}
+		} else {
+			nip := b.VAT
+			if _, num, ok := parseEUVat(nip); ok {
+				nip = num
+			}
+			daneId = DaneIdPodmiot2{NIP: nip, Nazwa: b.Name}
+		}
 	}
-	addr := buildAdres(b.CountryCode, b.AddressLine1, b.Address, b.AddressLine2)
+	addr := buildAdres(countryCode, b.AddressLine1, b.Address, b.AddressLine2)
 	return Podmiot2{
 		DaneIdentyfikacyjne: daneId,
 		Adres:               &addr,
@@ -381,10 +409,14 @@ func buildFa(inv *invoice.Invoice, issueDate, saleDate string) Fa {
 	}
 
 	for i, item := range inv.Items {
+		unit := item.Unit
+		if unit == "" {
+			unit = "-"
+		}
 		w := FaWiersz{
 			NrWierszaFa: i + 1,
 			P_7:         item.Description,
-			P_8A:        item.Unit,
+			P_8A:        unit,
 			P_8B:        fmtQty(item.Quantity),
 			P_9A:        fmtPrice(item.UnitPrice),
 			P_11:        fmtAmt(round2(item.Quantity * item.UnitPrice)),
@@ -431,6 +463,19 @@ func buildPlatnosc(inv *invoice.Invoice) *Platnosc {
 		NazwaBanku: inv.Bank.BankName,
 	}}
 	return p
+}
+
+// parseEUVat splits a VAT number into country code and number.
+func parseEUVat(vat string) (code, number string, ok bool) {
+	if len(vat) < 3 {
+		return "", "", false
+	}
+	prefix := vat[:2]
+	rest := vat[2:]
+	if prefix[0] >= 'A' && prefix[0] <= 'Z' && prefix[1] >= 'A' && prefix[1] <= 'Z' && len(rest) > 0 {
+		return prefix, rest, true
+	}
+	return "", "", false
 }
 
 // parseDate converts DD-MM-YYYY → YYYY-MM-DD (as required by KSeF date fields).
