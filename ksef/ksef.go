@@ -162,6 +162,7 @@ type RachunekBankowy struct {
 // Generate converts an Invoice into a KSeF FA_3 XML document.
 // Returns the full XML bytes including the XML declaration header.
 func Generate(inv *invoice.Invoice) ([]byte, error) {
+	normalizeParties(inv)
 	issueDate := parseDate(inv.IssueDate)
 	saleDate := parseDate(inv.SaleDate)
 	if saleDate == issueDate {
@@ -200,6 +201,39 @@ func Generate(inv *invoice.Invoice) ([]byte, error) {
 		return nil, fmt.Errorf("marshal XML: %w", err)
 	}
 	return append([]byte(xml.Header), out...), nil
+}
+
+func normalizeParties(inv *invoice.Invoice) {
+	s := &inv.Company.Seller
+	s.VAT = strings.TrimPrefix(s.VAT, "PL")
+
+	b := &inv.Company.Buyer
+	if b.EUCode == "" {
+		if prefix, rest, ok := splitVATPrefix(b.VAT); ok {
+			if prefix == "PL" {
+				b.VAT = rest
+			} else {
+				b.EUCode = prefix
+				b.EUVatNumber = rest
+				b.VAT = ""
+			}
+		}
+	}
+	if b.EUCode != "" && (b.CountryCode == "" || b.CountryCode == "PL") {
+		b.CountryCode = b.EUCode
+	}
+}
+
+func splitVATPrefix(vat string) (string, string, bool) {
+	if len(vat) < 3 {
+		return "", "", false
+	}
+	for _, c := range vat[:2] {
+		if c < 'A' || c > 'Z' {
+			return "", "", false
+		}
+	}
+	return vat[:2], vat[2:], true
 }
 
 func buildPodmiot1(inv *invoice.Invoice) Podmiot1 {
