@@ -39,8 +39,10 @@ type KodFormularza struct {
 	WersjaSchemy string `xml:"wersjaSchemy,attr"`
 }
 
-// Podmiot1 – seller.
+// Podmiot1 – seller. PrefiksPodatnika is the seller's VAT-UE country prefix,
+// required for intra-EU transactions (e.g. np II, WDT).
 type Podmiot1 struct {
+	PrefiksPodatnika    string         `xml:"PrefiksPodatnika,omitempty"`
 	DaneIdentyfikacyjne DaneIdPodmiot1 `xml:"DaneIdentyfikacyjne"`
 	Adres               Adres          `xml:"Adres"`
 }
@@ -183,6 +185,14 @@ func Generate(inv *invoice.Invoice) ([]byte, error) {
 		Podmiot1: buildPodmiot1(inv),
 		Podmiot2: buildPodmiot2(inv),
 		Fa:       buildFa(inv, issueDate, saleDate),
+	}
+
+	if inv.Company.Buyer.EUCode != "" {
+		prefix := inv.Company.Seller.CountryCode
+		if prefix == "" {
+			prefix = "PL"
+		}
+		faktura.Podmiot1.PrefiksPodatnika = prefix
 	}
 
 	out, err := xml.MarshalIndent(faktura, "", "  ")
@@ -404,8 +414,8 @@ func buildFa(inv *invoice.Invoice, issueDate, saleDate string) Fa {
 
 func buildAdnotacje(sums vatSums) Adnotacje {
 	p18 := 2
-	if sums.hasOO {
-		p18 = 1 // reverse charge: "odwrotne obciążenie"
+	if sums.hasOO || sums.netNpII > 0 {
+		p18 = 1 // reverse charge: "odwrotne obciążenie" (oo, or np II – art. 28b services)
 	}
 	return Adnotacje{
 		P_16:                 2,
